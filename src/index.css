@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: #E0E0E0;
+  background-color: #0B0E14;
+  
+  /* 중립적인 테크/게임 감성의 배경 레이어 */
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 50% 30%, rgba(52, 152, 219, 0.08), transparent 70%);
+  
+  background-size: 50px 50px, 50px 50px, cover;
+  background-position: center center;
+  
+  /* 배경 격자가 천천히 흐르는 애니메이션 */
+  animation: backgroundScroll 100s linear infinite;
+}
+
+@keyframes backgroundScroll {
+  from { background-position: 0 0, 0 0, center; }
+  to { background-position: 500px 500px, 500px 500px, center; }
+}
+
+/* 스크롤바 커스텀 */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0B0E14; }
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
