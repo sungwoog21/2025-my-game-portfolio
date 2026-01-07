@@ -1,20 +1,17 @@
-// src/components/Modal.jsx
-import React, { useState, useEffect } from 'react'; // 1. useEffect 추가
+import React, { useState, useEffect } from 'react';
 import { X, ExternalLink, Search } from 'lucide-react';
 import Timeline from './Timeline';
 
 function Modal({ isOpen, onClose, data }) {
   const [enlargedImage, setEnlargedImage] = useState(null);
 
-  // 2. ESC 키 이벤트 리스너 추가
+  // ESC 키 이벤트 리스너
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === 'Escape') {
         if (enlargedImage) {
-          // 확대된 이미지가 있다면 이미지부터 닫기
           setEnlargedImage(null);
         } else {
-          // 이미지가 없다면 모달 닫기
           onClose();
         }
       }
@@ -24,7 +21,6 @@ function Modal({ isOpen, onClose, data }) {
       window.addEventListener('keydown', handleEsc);
     }
     
-    // 컴포넌트가 사라지거나 모달이 닫힐 때 리스너 제거 (메모리 누수 방지)
     return () => {
       window.removeEventListener('keydown', handleEsc);
     };
@@ -37,11 +33,10 @@ function Modal({ isOpen, onClose, data }) {
 
   return (
     <>
-      {/* 배경 클릭 시 닫히게 하려면 여기에 onClick={onClose}를 추가할 수 있습니다 */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fadeIn">
         <div 
           className="bg-game-dark border border-game-gold w-full max-w-2xl rounded-lg shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
-          onClick={(e) => e.stopPropagation()} // 모달 내부 클릭 시 닫힘 방지
+          onClick={(e) => e.stopPropagation()}
         >
           {/* 헤더 */}
           <div className="p-6 border-b border-white/10 flex justify-between items-start bg-black/40">
@@ -57,6 +52,7 @@ function Modal({ isOpen, onClose, data }) {
           {/* 본문 */}
           <div className="p-6 overflow-y-auto custom-scrollbar">
             {isTimelineLayout ? (
+              /* --- 타임라인형 레이아웃 (Issue, Operation, Log) --- */
               <div className="space-y-6">
                 <div className="bg-game-blue/10 border border-game-blue/30 p-4 rounded">
                   <p className="text-game-blue font-bold">
@@ -82,6 +78,7 @@ function Modal({ isOpen, onClose, data }) {
                 <Timeline milestones={data.milestones} />
               </div>
             ) : (
+              /* --- 일반형 레이아웃 (Policy, Event, Analyze 등) --- */
               <div className="space-y-6 text-gray-300">
                 <div className="bg-game-gold/10 border border-game-gold/30 p-4 rounded">
                   <h3 className="text-game-gold font-bold mb-1">Summary</h3>
@@ -94,24 +91,77 @@ function Modal({ isOpen, onClose, data }) {
                 <div>
                   <h3 className="text-white font-bold text-lg mb-2">주요 성과</h3>
                   <ul className="list-disc list-inside space-y-1 text-gray-400">
-                    {data.details.map((detail, idx) => (<li key={idx}>{detail}</li>))}
+                    {data.details && data.details.map((detail, idx) => (
+                      <li key={idx}>{detail}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
             )}
-            {/* 이미지 섹션 생략... */}
+
+            {/* --- 공용 이미지 섹션 (레이아웃 상관없이 출력) --- */}
+            {data.evidenceImages && data.evidenceImages.length > 0 && (
+              <div className="mt-10 pt-8 border-t border-white/10">
+                <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                  <span className="w-1 h-5 bg-game-blue inline-block"></span>
+                  자료 이미지
+                </h3>
+                <p className="text-xs text-game-dim mb-4">이미지를 클릭하면 크게 볼 수 있습니다.</p>
+                <div className="grid grid-cols-1 gap-6">
+                  {data.evidenceImages.map((img, idx) => (
+                    <div key={idx} className="group relative">
+                      <div 
+                        className="overflow-hidden rounded-lg border border-white/10 group-hover:border-game-blue transition-all relative cursor-pointer"
+                        onClick={() => setEnlargedImage(img)}
+                      >
+                        <img 
+                          src={img.url} 
+                          alt={img.caption} 
+                          className="w-full h-auto object-cover transition-transform duration-500 group-hover:brightness-50" 
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Search className="w-10 h-10 text-game-blue" />
+                        </div>
+                      </div>
+                      <p className="text-xs text-game-dim mt-3 text-center italic font-light">
+                        {img.caption}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          {/* 푸터 섹션 생략... */}
+
+          {/* 푸터 (상세 문서 링크) */}
+          {data.notionLink && (
+            <div className="p-6 border-t border-white/10 bg-black/20 flex justify-end">
+              <a href={data.notionLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-game-gold/10 text-game-gold px-4 py-2 rounded border border-game-gold/50 hover:bg-game-gold hover:text-black transition-all font-bold text-sm">
+                <ExternalLink className="w-4 h-4" />
+                상세 문서 보기
+              </a>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 이미지 확대 레이어 (이 상태에서도 ESC가 작동합니다) */}
+      {/* 이미지 확대 레이어 */}
       {enlargedImage && (
         <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 cursor-zoom-out"
+          className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 cursor-zoom-out animate-fadeIn"
           onClick={() => setEnlargedImage(null)}
         >
-          <img src={enlargedImage.url} alt={enlargedImage.caption} className="max-w-full max-h-[85vh] object-contain rounded shadow-2xl" />
+          <button className="absolute top-6 right-6 text-white hover:text-game-gold">
+            <X className="w-10 h-10" />
+          </button>
+          <img 
+            src={enlargedImage.url} 
+            alt={enlargedImage.caption} 
+            className="max-w-full max-h-[85vh] object-contain rounded shadow-2xl border border-white/10"
+          />
+          <p className="mt-6 text-game-gold text-lg font-bold bg-black/50 px-4 py-2 rounded">
+            {enlargedImage.caption}
+          </p>
         </div>
       )}
     </>
