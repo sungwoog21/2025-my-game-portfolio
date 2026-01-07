@@ -1,6 +1,6 @@
-// middleware.js (Vite 프로젝트 전용 - 타임아웃 해결 버전)
+// middleware.js (Vite/React 전용 - 무한 루프 방지 최적화 버전)
 
-export default async function middleware(req) {
+export default function middleware(req) {
   const authHeader = req.headers.get('authorization');
 
   // 1. 인증 정보가 없으면 401 응답으로 로그인 창 호출
@@ -20,14 +20,15 @@ export default async function middleware(req) {
 
     // 2. 아이디/비번 확인 (0000 / 0000)
     if (user === '0000' && pwd === '0000') {
-      // [핵심] 성공 시 원래 요청을 fetch하여 반환해야 타임아웃이 나지 않습니다.
-      return fetch(req);
+      // [중요] 인증 성공 시 아무것도 반환하지 않으면(undefined) 자동으로 다음 단계로 진행됩니다.
+      // fetch(req)를 사용하면 자기 자신을 다시 호출하는 루프에 빠질 수 있어 타임아웃의 원인이 됩니다.
+      return; 
     }
   } catch (e) {
     console.error('인증 처리 중 오류:', e);
   }
 
-  // 3. 인증 실패 시 다시 로그인 창
+  // 3. 정보가 틀렸을 경우 다시 로그인창
   return new Response('Invalid credentials', {
     status: 401,
     headers: {
@@ -37,6 +38,6 @@ export default async function middleware(req) {
 }
 
 export const config = {
-  // 모든 경로를 보호하되, 이미지(images)와 정적 자산(assets)은 제외
+  // 모든 경로를 보호하되, 이미지와 자산 파일은 미들웨어가 아예 실행되지 않도록 제외
   matcher: ['/((?!api|favicon.ico|assets|images|.*\\..*).*)'],
 };
