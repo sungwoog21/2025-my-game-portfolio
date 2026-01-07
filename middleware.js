@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
+// middleware.js (Vite/React 프로젝트용 - next/server 제거 버전)
 
-export function middleware(req) {
+export default function middleware(req) {
   const authHeader = req.headers.get('authorization');
 
-  // 1. 인증 정보가 없으면 401 응답과 함께 로그인 팝업 호출
+  // 1. 인증 정보가 없으면 401 응답으로 로그인 팝업 띄우기
   if (!authHeader) {
-    return new NextResponse('Authentication required', {
+    return new Response('Authentication required', {
       status: 401,
       headers: {
         'WWW-Authenticate': 'Basic realm="Secure Area"',
@@ -15,20 +15,20 @@ export function middleware(req) {
 
   try {
     const auth = authHeader.split(' ')[1];
-    const decoded = atob(auth);
+    const decoded = atob(auth); // 'ID:PW' 형태
     const [user, pwd] = decoded.split(':');
 
-    // 2. 아이디와 비번 확인
+    // 2. 아이디와 비번 확인 (0000 / 0000)
     if (user === '0000' && pwd === '0000') {
-      // 인증 성공 시 명확하게 '다음(페이지)'으로 넘기라는 신호를 줍니다.
-      return NextResponse.next();
+      // 인증 성공 시: 아무것도 반환하지 않거나 null을 반환하면 실제 페이지로 통과됩니다.
+      return; 
     }
   } catch (e) {
-    console.error('인증 오류:', e);
+    // 디코딩 에러 처리
   }
 
-  // 3. 인증 실패 시 다시 로그인 창
-  return new NextResponse('Invalid credentials', {
+  // 3. 정보가 틀렸을 경우 다시 로그인창
+  return new Response('Invalid credentials', {
     status: 401,
     headers: {
       'WWW-Authenticate': 'Basic realm="Secure Area"',
@@ -36,7 +36,7 @@ export function middleware(req) {
   });
 }
 
-// 모든 경로에 적용하되, 이미지 등 정적 파일은 제외
+// 모든 경로에 적용하되, 정적 자산(이미지 등) 제외
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|assets).*)'],
 };
