@@ -84,7 +84,7 @@ export const achievements = [
   
   {
     id: 3,
-    category: "Issue",
+    category: "Operation",
     icon: Shield,
     title: "운영 업무 마일스톤",
     summary: "SQL 데이터 분석을 통한 운영 업무 및 이벤트 대응 연대기",
